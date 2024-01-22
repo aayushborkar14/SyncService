@@ -60,13 +60,24 @@ class Device:
 
 class SyncService:
     def __init__(self):
-        pass
+        self.records = []
 
     def onMessage(self, data: dict):
         """Handle messages received from devices.
         Return the desired information in the correct format (type `update`, see Device.onMessage and testSyncing to understand format intricacies) in response to a `probe`.
         No return value required on handling a `record`."""
-        raise NotImplementedError()
+        if not data:
+            return {"type": "pass"}
+        elif data["type"] == "probe":
+            if data["from"] >= len(self.records):
+                return {"type": "pass"}
+            return {
+                "type": "update",
+                "from": data["from"],
+                "data": self.records[data["from"] :],
+            }
+        elif data["type"] == "record":
+            self.records.append(data)
 
 
 def testSyncing():
@@ -101,3 +112,5 @@ def assertEquivalent(d1: dict, d2: dict):
     for kee in _DATA_KEYS:
         assert d1["data"][kee] == d2["data"][kee]
 
+
+testSyncing()
